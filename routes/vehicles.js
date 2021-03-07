@@ -1,15 +1,27 @@
+const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
+
+const url = 'mongodb://localhost:27017';
+const dbName = 'atob';
+
+
 const vehicleRoutes = (app, fs) => {
-    // variables
-    const dataPath = './data/vehicle_locations.json';
-
-    // READ
+    // Fetch vehicle locations from db on every api call
     app.get('/vehicle_locations', (req, res) => {
-        fs.readFile(dataPath, 'utf8', (err, data) => {
-            if (err) {
-                throw err;
-            }
+        MongoClient.connect(url, function (err, client) {
+            assert.equal(null, err);
 
-            res.send(JSON.parse(data));
+            const db = client.db(dbName);
+            const collection = db.collection('documents');
+            // Find some documents
+            collection.find({}).toArray(function (err, docs) {
+                assert.equal(err, null);
+                console.log("Found the following records");
+                console.log(docs)
+                res.send(docs);
+            });
+
+            client.close();
         });
     });
 };
